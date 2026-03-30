@@ -15,24 +15,26 @@ export default function Clashes() {
   const batchMap = Object.fromEntries(batches.map(b => [b.id, b]));
   const labMap = Object.fromEntries(labs.map(l => [l.id, l]));
 
-  // Detect lab clashes (same lab, same day, same slot)
+  // Detect lab clashes (same lab, overlapping time)
   const labClashes = [];
   for (let i = 0; i < sessions.length; i++) {
     for (let j = i + 1; j < sessions.length; j++) {
       const a = sessions[i], b = sessions[j];
-      if (a.labId === b.labId && a.dayId === b.dayId && a.slotId === b.slotId) {
-        labClashes.push({ type: 'Lab Conflict', sessionA: a, sessionB: b, detail: `${a.labName} is double-booked on ${a.dayName} at ${a.slotLabel}` });
+      const overlaps = a.dayId === b.dayId && (a.startTime < b.endTime && a.endTime > b.startTime);
+      if (overlaps && a.labId === b.labId) {
+        labClashes.push({ type: 'Lab Conflict', sessionA: a, sessionB: b, detail: `${a.labName} is double-booked on ${a.dayName} at ${a.startTime.substring(0,5)}` });
       }
     }
   }
 
-  // Detect batch clashes (same batch, same day, same slot)
+  // Detect batch clashes (same batch, overlapping time, DIFFERENT subject)
   const batchClashes = [];
   for (let i = 0; i < sessions.length; i++) {
     for (let j = i + 1; j < sessions.length; j++) {
       const a = sessions[i], b = sessions[j];
-      if (a.batchId === b.batchId && a.dayId === b.dayId && a.slotId === b.slotId) {
-        batchClashes.push({ type: 'Batch Conflict', sessionA: a, sessionB: b, detail: `${a.batchName} has two sessions on ${a.dayName} at ${a.slotLabel}` });
+      const overlaps = a.dayId === b.dayId && (a.startTime < b.endTime && a.endTime > b.startTime);
+      if (overlaps && a.batchId === b.batchId && a.subjectId !== b.subjectId) {
+        batchClashes.push({ type: 'Batch Conflict', sessionA: a, sessionB: b, detail: `${a.batchName} has two conflicting sessions on ${a.dayName} at ${a.startTime.substring(0,5)}` });
       }
     }
   }
@@ -108,7 +110,7 @@ export default function Clashes() {
                     {batch?.batchName} → {lab?.labName}
                   </div>
                   <div style={{ color: 'var(--text3)', fontSize: 12, marginTop: 2 }}>
-                    Batch strength ({batch?.studentCount}) exceeds functional PCs ({lab?.workingComputers}) — {s.dayName} at {s.slotLabel}
+                    Batch strength ({batch?.studentCount}) exceeds functional PCs ({lab?.workingComputers}) — {s.dayName} at {s.startTime?.substring(0,5)}
                   </div>
                 </div>
               </div>

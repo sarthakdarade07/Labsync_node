@@ -36,9 +36,10 @@ export default function Schedule() {
       const overlaps = s.dayId.toString() === f.dayId.toString() &&
          (s.startTime < f.endTime && s.endTime > f.startTime);
       if (!overlaps) return false;
-      return s.labId.toString() === f.labId.toString() ||
-             s.batchId.toString() === f.batchId.toString() ||
-             s.staffId.toString() === f.staffId.toString();
+      if (s.labId.toString() === f.labId.toString()) return true;
+      if (s.staffId.toString() === f.staffId.toString()) return true;
+      if (s.batchId.toString() === f.batchId.toString() && s.subjectId.toString() !== f.subjectId.toString()) return true;
+      return false;
     });
   };
 

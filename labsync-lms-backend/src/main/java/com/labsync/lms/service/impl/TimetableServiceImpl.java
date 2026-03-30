@@ -149,8 +149,12 @@ public class TimetableServiceImpl implements TimetableService {
         log.info("Deactivated existing schedules. Saving {} GA-generated entries...", best.getGenes().size());
         List<Schedule> newSchedules = new ArrayList<>();
         for (Chromosome.Gene gene : best.getGenes()) {
-            Schedule schedule = Schedule.builder().batch(gene.getBatch()).subject(gene.getSubject()).staff(gene.getStaff()).lab(gene.getLab()).day(gene.getDay()).startTime(gene.getStartTime()).endTime(gene.getEndTime()).generatedByGA(true).algorithmRun(run).active(true).build();
-            newSchedules.add(schedule);
+            for (int i = 0; i < gene.getLabs().size(); i++) {
+                Lab lab = gene.getLabs().get(i);
+                Staff staff = i < gene.getStaffList().size() ? gene.getStaffList().get(i) : gene.getStaffList().get(0);
+                Schedule schedule = Schedule.builder().batch(gene.getBatch()).subject(gene.getSubject()).staff(staff).lab(lab).day(gene.getDay()).startTime(gene.getStartTime()).endTime(gene.getEndTime()).generatedByGA(true).algorithmRun(run).active(true).build();
+                newSchedules.add(schedule);
+            }
         }
         scheduleRepository.saveAll(newSchedules);
         log.info("Saved {} schedules from GA run id={}", newSchedules.size(), run.getId());

@@ -22,17 +22,17 @@ public class Chromosome implements Comparable<Chromosome> {
     public static class Gene {
         private Batch batch;
         private Subject subject;
-        private Staff staff;
-        private Lab lab;
+        private List<Staff> staffList;
+        private List<Lab> labs;
         private Day day;
         private LocalTime startTime;
         private LocalTime endTime;
 
-        public Gene(Batch batch, Subject subject, Staff staff, Lab lab, Day day, LocalTime startTime, LocalTime endTime) {
+        public Gene(Batch batch, Subject subject, List<Staff> staffList, List<Lab> labs, Day day, LocalTime startTime, LocalTime endTime) {
             this.batch = batch;
             this.subject = subject;
-            this.staff = staff;
-            this.lab = lab;
+            this.staffList = new ArrayList<>(staffList);
+            this.labs = new ArrayList<>(labs);
             this.day = day;
             this.startTime = startTime;
             this.endTime = endTime;
@@ -42,12 +42,14 @@ public class Chromosome implements Comparable<Chromosome> {
          * Deep copy of this gene
          */
         public Gene copy() {
-            return new Gene(batch, subject, staff, lab, day, startTime, endTime);
+            return new Gene(batch, subject, new ArrayList<>(staffList), new ArrayList<>(labs), day, startTime, endTime);
         }
 
         @Override
         public String toString() {
-            return String.format("[%s | %s | %s | %s | %s %s - %s]", batch.getBatchName(), subject.getName(), staff.getFullName(), lab.getLabName(), day.getDayName(), startTime, endTime);
+            String labNames = labs.stream().map(Lab::getLabName).reduce((a, b) -> a + "+" + b).orElse("None");
+            String staffNames = staffList.stream().map(Staff::getFullName).reduce((a, b) -> a + "+" + b).orElse("None");
+            return String.format("[%s | %s | %s | %s | %s %s - %s]", batch.getBatchName(), subject.getName(), staffNames, labNames, day.getDayName(), startTime, endTime);
         }
 
         public Batch getBatch() {
@@ -58,12 +60,12 @@ public class Chromosome implements Comparable<Chromosome> {
             return this.subject;
         }
 
-        public Staff getStaff() {
-            return this.staff;
+        public List<Staff> getStaffList() {
+            return this.staffList;
         }
 
-        public Lab getLab() {
-            return this.lab;
+        public List<Lab> getLabs() {
+            return this.labs;
         }
 
         public Day getDay() {
@@ -86,12 +88,12 @@ public class Chromosome implements Comparable<Chromosome> {
             this.subject = subject;
         }
 
-        public void setStaff(final Staff staff) {
-            this.staff = staff;
+        public void setStaffList(final List<Staff> staffList) {
+            this.staffList = staffList;
         }
 
-        public void setLab(final Lab lab) {
-            this.lab = lab;
+        public void setLabs(final List<Lab> labs) {
+            this.labs = labs;
         }
 
         public void setDay(final Day day) {

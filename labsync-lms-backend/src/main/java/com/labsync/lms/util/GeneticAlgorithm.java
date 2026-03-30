@@ -152,10 +152,10 @@ public class GeneticAlgorithm {
             for (Subject subject : batchSubjects) {
                 int sessions = batch.getLabsPerWeek() != null ? batch.getLabsPerWeek() : 1;
                 for (int i = 0; i < sessions; i++) {
-                    Staff staff = randomFrom(staffList);
-                    Lab lab = randomFrom(labs);
+                    List<Lab> chosenLabs = pickLabsForBatch(batch);
+                    List<Staff> chosenStaff = pickStaffList(chosenLabs.size());
                     Day day = randomFrom(days);
-                    Chromosome.Gene gene = new Chromosome.Gene(batch, subject, staff, lab, day, null, null);
+                    Chromosome.Gene gene = new Chromosome.Gene(batch, subject, chosenStaff, chosenLabs, day, null, null);
                     assignRandomTime(gene);
                     genes.add(gene);
                 }
@@ -182,11 +182,31 @@ public class GeneticAlgorithm {
                 boolean timeOverlap = sameDay && g1.getStartTime().isBefore(g2.getEndTime()) && g1.getEndTime().isAfter(g2.getStartTime());
                 if (timeOverlap) {
                     // Hard: lab double-booking
-                    if (g1.getLab().getId().equals(g2.getLab().getId())) {
+                    boolean labOverlap = false;
+                    for (Lab l1 : g1.getLabs()) {
+                        for (Lab l2 : g2.getLabs()) {
+                            if (l1.getId().equals(l2.getId())) {
+                                labOverlap = true;
+                                break;
+                            }
+                        }
+                        if (labOverlap) break;
+                    }
+                    if (labOverlap) {
                         penalty += PENALTY_LAB_CLASH;
                     }
                     // Hard: staff double-booking
-                    if (g1.getStaff().getId().equals(g2.getStaff().getId())) {
+                    boolean staffOverlap = false;
+                    for (Staff s1 : g1.getStaffList()) {
+                        for (Staff s2 : g2.getStaffList()) {
+                            if (s1.getId().equals(s2.getId())) {
+                                staffOverlap = true;
+                                break;
+                            }
+                        }
+                        if (staffOverlap) break;
+                    }
+                    if (staffOverlap) {
                         penalty += PENALTY_STAFF_CLASH;
                     }
                     // Hard: batch double-booking (same batch in two labs at once)
@@ -195,20 +215,32 @@ public class GeneticAlgorithm {
                     }
                 }
             }
-            // Hard: lab capacity < batch size
-            if (g1.getLab().getCapacity() < g1.getBatch().getStudentCount()) {
+            // Hard: check for duplicate staff within the same gene
+            long distinctStaff = g1.getStaffList().stream().map(Staff::getId).distinct().count();
+            if (distinctStaff < g1.getStaffList().size()) {
+                penalty += PENALTY_STAFF_CLASH * (g1.getStaffList().size() - distinctStaff);
+            }
+            // Hard: capacity check across combined labs
+            int totalCapacity = g1.getLabs().stream().mapToInt(Lab::getCapacity).sum();
+            int totalWorking = g1.getLabs().stream().mapToInt(Lab::getWorkingComputers).sum();
+            
+            if (totalCapacity < g1.getBatch().getStudentCount()) {
                 penalty += PENALTY_CAPACITY;
             }
-            // Hard: lab working computers < batch size
-            if (g1.getLab().getWorkingComputers() < g1.getBatch().getStudentCount()) {
+            if (totalWorking < g1.getBatch().getStudentCount()) {
                 penalty += PENALTY_WORKING_PCS;
             }
             // Hard: OS requirement mismatch
             String requiredOs = g1.getBatch().getOsRequirement();
             if (requiredOs != null && !requiredOs.trim().isEmpty() && !requiredOs.equalsIgnoreCase("Any")) {
-                if (!requiredOs.equalsIgnoreCase(g1.getLab().getOsType())) {
+                boolean allMatch = g1.getLabs().stream().allMatch(l -> requiredOs.equalsIgnoreCase(l.getOsType()));
+                if (!allMatch) {
                     penalty += PENALTY_OS_MISMATCH;
                 }
+            }
+            // Soft: penalize using multiple labs if unnecessary (encourages condensing to fewer/larger labs)
+            if (g1.getLabs().size() > 1) {
+                penalty += (g1.getLabs().size() - 1) * 0.05;
             }
         }
         // Clamp fitness to [0.0, 1.0]
@@ -228,8 +260,28 @@ public class GeneticAlgorithm {
                 boolean sameDay = g1.getDay().getId().equals(g2.getDay().getId());
                 boolean timeOverlap = sameDay && g1.getStartTime().isBefore(g2.getEndTime()) && g1.getEndTime().isAfter(g2.getStartTime());
                 if (timeOverlap) {
-                    if (g1.getLab().getId().equals(g2.getLab().getId())) clashes++;
-                    if (g1.getStaff().getId().equals(g2.getStaff().getId())) clashes++;
+                    boolean labOverlap = false;
+                    for (Lab l1 : g1.getLabs()) {
+                        for (Lab l2 : g2.getLabs()) {
+                            if (l1.getId().equals(l2.getId())) {
+                                labOverlap = true;
+                                break;
+                            }
+                        }
+                        if (labOverlap) break;
+                    }
+                    if (labOverlap) clashes++;
+                    boolean staffOverlap = false;
+                    for (Staff s1 : g1.getStaffList()) {
+                        for (Staff s2 : g2.getStaffList()) {
+                            if (s1.getId().equals(s2.getId())) {
+                                staffOverlap = true;
+                                break;
+                            }
+                        }
+                        if (staffOverlap) break;
+                    }
+                    if (staffOverlap) clashes++;
                     if (g1.getBatch().getId().equals(g2.getBatch().getId())) clashes++;
                 }
             }
@@ -292,14 +344,15 @@ public class GeneticAlgorithm {
     private void mutate(Chromosome chromosome) {
         for (Chromosome.Gene gene : chromosome.getGenes()) {
             if (random.nextDouble() < mutationRate) {
-                int mutationType = random.nextInt(3);
+                int mutationType = random.nextInt(4);
                 switch (mutationType) {
-                    case 0 -> gene.setLab(randomFrom(labs));
+                    case 0 -> gene.setLabs(pickLabsForBatch(gene.getBatch()));
                     case 1 -> {
                         gene.setDay(randomFrom(days));
                         assignRandomTime(gene);
                     }
                     case 2 -> assignRandomTime(gene);
+                    case 3 -> gene.setStaffList(pickStaffList(gene.getLabs().size()));
                 }
             }
         }
@@ -311,6 +364,46 @@ public class GeneticAlgorithm {
     private <T> T randomFrom(List<T> list) {
         if (list.isEmpty()) throw new IllegalStateException("Cannot pick from empty list");
         return list.get(random.nextInt(list.size()));
+    }
+
+    private List<Staff> pickStaffList(int count) {
+        List<Staff> chosen = new ArrayList<>();
+        if (staffList.isEmpty()) throw new IllegalStateException("No staff available");
+        List<Staff> pool = new ArrayList<>(staffList);
+        Collections.shuffle(pool, random);
+        for(int i = 0; i < count; i++) {
+            chosen.add(pool.get(i % pool.size()));
+        }
+        return chosen;
+    }
+
+    private List<Lab> pickLabsForBatch(Batch batch) {
+        int requiredCapacity = batch.getStudentCount();
+        String requiredOs = batch.getOsRequirement();
+        
+        List<Lab> validLabs = new ArrayList<>();
+        boolean checkOs = requiredOs != null && !requiredOs.trim().isEmpty() && !requiredOs.equalsIgnoreCase("Any");
+        for (Lab l : labs) {
+            if (!checkOs || requiredOs.equalsIgnoreCase(l.getOsType())) {
+                validLabs.add(l);
+            }
+        }
+        if (validLabs.isEmpty()) {
+            validLabs.addAll(labs);
+        }
+        
+        Collections.shuffle(validLabs, random);
+        List<Lab> chosenLabs = new ArrayList<>();
+        int currentCapacity = 0;
+        
+        for (Lab l : validLabs) {
+            chosenLabs.add(l);
+            currentCapacity += l.getWorkingComputers();
+            if (currentCapacity >= requiredCapacity) {
+                break;
+            }
+        }
+        return chosenLabs;
     }
 
     private void assignRandomTime(Chromosome.Gene gene) {
