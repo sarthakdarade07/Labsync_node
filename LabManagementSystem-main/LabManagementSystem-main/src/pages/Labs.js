@@ -49,7 +49,7 @@ export default function Labs() {
     try {
       const working = newLab.workingComputers ? +newLab.workingComputers : +newLab.totalComputers;
       const faulty = +newLab.totalComputers - working;
-      
+
       const payload = {
         labName: newLab.labName,
         capacity: +newLab.capacity,
@@ -96,7 +96,7 @@ export default function Labs() {
                 <input type="number" placeholder="Total PCs" value={newLab.totalComputers} onChange={e => setNewLab(p => ({ ...p, totalComputers: e.target.value }))} />
               </div>
               <input type="number" placeholder="Working PCs (Optional)" value={newLab.workingComputers} onChange={e => setNewLab(p => ({ ...p, workingComputers: e.target.value }))} />
-              
+
               <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
                 <button className="btn btn-primary btn-sm" onClick={submitNewLab}>Create Lab</button>
                 <button className="btn btn-secondary btn-sm" onClick={() => setShowAddModal(false)}>Cancel</button>
@@ -198,7 +198,7 @@ export default function Labs() {
                   <td style={{ fontFamily: 'var(--mono)' }}>{totalPCs}</td>
                   <td style={{ color: 'var(--success)', fontFamily: 'var(--mono)' }}>{functionalPCs}</td>
                   <td style={{ color: faulty > 0 ? 'var(--warning)' : 'var(--text3)', fontFamily: 'var(--mono)' }}>{faulty}</td>
-                  <td><span className={`badge ${pct===100?'badge-success':pct>=80?'badge-info':'badge-warning'}`}>{pct}%</span></td>
+                  <td><span className={`badge ${pct === 100 ? 'badge-success' : pct >= 80 ? 'badge-info' : 'badge-warning'}`}>{pct}%</span></td>
                 </tr>
               );
             })}

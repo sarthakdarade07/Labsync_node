@@ -21,7 +21,7 @@ export default function Timetable() {
 
   const filtered = sessions.filter(s =>
     (filterBatch === 'all' || s.batchId.toString() === filterBatch.toString()) &&
-    (filterLab   === 'all' || s.labId.toString()   === filterLab.toString())
+    (filterLab === 'all' || s.labId.toString() === filterLab.toString())
   );
 
   const dynamicTimeSlots = React.useMemo(() => {
@@ -43,7 +43,7 @@ export default function Timetable() {
   const batchMap = Object.fromEntries(batches.map(b => [b.id, b]));
   const subjectMap = Object.fromEntries(subjects.map(s => [s.id, s]));
 
-  const colours = ['#3b82f6','#8b5cf6','#06b6d4','#10b981','#f59e0b','#ef4444'];
+  const colours = ['#3b82f6', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
   const batchColour = {};
   batches.forEach((b, i) => { batchColour[b.id] = colours[i % colours.length]; });
 
@@ -81,31 +81,32 @@ export default function Timetable() {
             {days.map((day, idx) => {
               const isToday = new Date().toLocaleDateString('en-US', { weekday: 'long' }) === day.dayName;
               return (
-              <tr key={day.id} style={{ background: isToday ? 'rgba(195,18,18,0.03)' : (idx % 2 === 0 ? 'var(--card)' : 'var(--bg)') }}>
-                <td style={{ fontWeight: 700, color: isToday ? 'var(--accent)' : 'var(--text2)', fontFamily: 'var(--mono)', fontSize: 13, position: 'sticky', left: 0, background: isToday ? 'rgba(195,18,18,0.1)' : 'inherit', zIndex: 1, padding: '16px', borderBottom: '1px solid var(--border)', borderRight: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  {day.dayName.slice(0, 3).toUpperCase()} {isToday && <Star size={14} fill="var(--accent)" color="var(--accent)" />}
-                </td>
-                {dynamicTimeSlots.map(slot => {
-                  const entries = sessionMap[cellKey(day.dayName, slot.slotLabel)] || [];
-                  return (
-                    <td key={slot.id} style={{ padding: '8px', verticalAlign: 'top', minWidth: 140, borderBottom: '1px solid var(--border)', borderRight: '1px solid var(--border)' }}>
-                      {entries.map(s => {
-                        const batch = batchMap[s.batchId];
-                        const subject = subjectMap[s.subjectId];
-                        const col = batchColour[s.batchId] ?? 'var(--accent)';
-                        return (
-                          <div key={s.scheduleId} style={{ ...styles.cell, borderLeft: `4px solid ${col}`, background: `${col}18` }}>
-                            <div style={{ fontSize: 13, fontWeight: 700, color: col, fontFamily: 'var(--sans)', letterSpacing: -0.3 }}>{s.batchName}</div>
-                            <div style={{ fontSize: 12, color: 'var(--text)', marginTop: 4, fontWeight: 500 }}>{s.subjectCode}</div>
-                            <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 4 }}><span><Building2 size={12} /></span>{s.labName?.split(' —')[0]}</div>
-                          </div>
-                        );
-                      })}
-                    </td>
-                  );
-                })}
-              </tr>
-            )})}
+                <tr key={day.id} style={{ background: isToday ? 'rgba(195,18,18,0.03)' : (idx % 2 === 0 ? 'var(--card)' : 'var(--bg)') }}>
+                  <td style={{ fontWeight: 700, color: isToday ? 'var(--accent)' : 'var(--text2)', fontFamily: 'var(--mono)', fontSize: 13, position: 'sticky', left: 0, background: isToday ? 'rgba(195,18,18,0.1)' : 'inherit', zIndex: 1, padding: '16px', borderBottom: '1px solid var(--border)', borderRight: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {day.dayName.slice(0, 3).toUpperCase()} {isToday && <Star size={14} fill="var(--accent)" color="var(--accent)" />}
+                  </td>
+                  {dynamicTimeSlots.map(slot => {
+                    const entries = sessionMap[cellKey(day.dayName, slot.slotLabel)] || [];
+                    return (
+                      <td key={slot.id} style={{ padding: '8px', verticalAlign: 'top', minWidth: 140, borderBottom: '1px solid var(--border)', borderRight: '1px solid var(--border)' }}>
+                        {entries.map(s => {
+                          const batch = batchMap[s.batchId];
+                          const subject = subjectMap[s.subjectId];
+                          const col = batchColour[s.batchId] ?? 'var(--accent)';
+                          return (
+                            <div key={s.scheduleId} style={{ ...styles.cell, borderLeft: `4px solid ${col}`, background: `${col}18` }}>
+                              <div style={{ fontSize: 13, fontWeight: 700, color: col, fontFamily: 'var(--sans)', letterSpacing: -0.3 }}>{s.batchName}</div>
+                              <div style={{ fontSize: 12, color: 'var(--text)', marginTop: 4, fontWeight: 500 }}>{s.subjectCode}</div>
+                              <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 4 }}><span><Building2 size={12} /></span>{s.labName?.split(' —')[0]}</div>
+                            </div>
+                          );
+                        })}
+                      </td>
+                    );
+                  })}
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>

@@ -7,18 +7,10 @@ const api = axios.create({
   },
 });
 
-// Helper to get cookie
-function getCookie(name) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
-  return null;
-}
-
 // Add a request interceptor to attach JWT token if it exists
 api.interceptors.request.use(
   (config) => {
-    const token = getCookie('lms_token') || localStorage.getItem('lms_token');
+    const token = localStorage.getItem('lms_token');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
@@ -37,7 +29,6 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       // Handle unauthorized errors (e.g. clear local storage and redirect to login)
-      document.cookie = 'lms_token=; Max-Age=0; path=/;';
       localStorage.removeItem('lms_token');
       localStorage.removeItem('lms_user');
       window.location.href = '/LabManagementSystem/login';
