@@ -510,12 +510,13 @@ function BatchesTab() {
       )}
 
       <table>
-        <thead><tr><th>Batch Name</th><th>Division</th><th>Semester</th><th>Strength</th><th>OS / Labs Per Week</th><th>Time (Start-End) / Hrs</th><th></th></tr></thead>
+        <thead><tr><th>Batch Name</th><th>Division</th><th>Year</th><th>Semester</th><th>Strength</th><th>OS / Labs Per Week</th><th>Time (Start-End) / Hrs</th><th></th></tr></thead>
         <tbody>
           {batches.map((b, i) => (
             <tr key={b.id || i}>
               <td style={{ color: 'var(--text)', fontWeight: 600 }}>{b.batchName}</td>
               <td style={{ fontFamily: 'var(--mono)' }}>{b.division}</td>
+              <td style={{ color: 'var(--text2)' }}>{b.academicYear?.year || 'N/A'}</td>
               <td><span className="badge badge-info">{b.semester}</span></td>
               <td style={{ fontFamily: 'var(--mono)' }}>{b.studentCount} Students</td>
                             <td style={{ fontSize: 13, color: 'var(--text2)' }}>{b.osRequirement || 'Any'} · {b.labsPerWeek || 1}/wk</td>

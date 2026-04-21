@@ -27,17 +27,24 @@ export default function Timetable() {
   const dynamicTimeSlots = React.useMemo(() => {
     const slots = new Set();
     filtered.forEach(s => {
-      if (s.slotLabel) slots.add(s.slotLabel);
+      if (s.startTime && s.endTime) {
+        const timeStr = `${s.startTime.substring(0,5)} - ${s.endTime.substring(0,5)}`;
+        slots.add(timeStr);
+      }
     });
+    // Sort time slots by their start time
     return Array.from(slots).sort().map((label, idx) => ({ id: 'dyn_' + idx, slotLabel: label }));
   }, [filtered]);
 
   const cellKey = (day, slot) => `${day}|${slot}`;
   const sessionMap = {};
   filtered.forEach(s => {
-    const k = cellKey(s.dayName, s.slotLabel);
-    if (!sessionMap[k]) sessionMap[k] = [];
-    sessionMap[k].push(s);
+    if (s.startTime && s.endTime) {
+      const timeStr = `${s.startTime.substring(0,5)} - ${s.endTime.substring(0,5)}`;
+      const k = cellKey(s.dayName, timeStr);
+      if (!sessionMap[k]) sessionMap[k] = [];
+      sessionMap[k].push(s);
+    }
   });
 
   const batchMap = Object.fromEntries(batches.map(b => [b.id, b]));
@@ -88,16 +95,21 @@ export default function Timetable() {
                   {dynamicTimeSlots.map(slot => {
                     const entries = sessionMap[cellKey(day.dayName, slot.slotLabel)] || [];
                     return (
-                      <td key={slot.id} style={{ padding: '8px', verticalAlign: 'top', minWidth: 140, borderBottom: '1px solid var(--border)', borderRight: '1px solid var(--border)' }}>
+                      <td key={slot.id} style={{ padding: '12px', verticalAlign: 'top', minWidth: 180, borderBottom: '1px solid var(--border)', borderRight: '1px solid var(--border)' }}>
                         {entries.map(s => {
-                          const batch = batchMap[s.batchId];
-                          const subject = subjectMap[s.subjectId];
                           const col = batchColour[s.batchId] ?? 'var(--accent)';
                           return (
-                            <div key={s.scheduleId} style={{ ...styles.cell, borderLeft: `4px solid ${col}`, background: `${col}18` }}>
-                              <div style={{ fontSize: 13, fontWeight: 700, color: col, fontFamily: 'var(--sans)', letterSpacing: -0.3 }}>{s.batchName}</div>
-                              <div style={{ fontSize: 12, color: 'var(--text)', marginTop: 4, fontWeight: 500 }}>{s.subjectCode}</div>
-                              <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 4 }}><span><Building2 size={12} /></span>{s.labName?.split(' —')[0]}</div>
+                            <div key={s.scheduleId} className="hover-lift" style={{ ...styles.cell, borderLeft: `4px solid ${col}`, background: `${col}18`, position: 'relative' }}>
+                              <div style={{ fontSize: 13, fontWeight: 700, color: col, fontFamily: 'var(--sans)', letterSpacing: -0.3, display: 'flex', justifyContent: 'space-between' }}>
+                                <span>{s.batchName}</span>
+                                {s.generatedByGA && <Star size={12} fill="var(--accent)" style={{ opacity: 0.5 }}/>}
+                              </div>
+                              <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 6, fontWeight: 600 }}>{s.subjectCode}</div>
+                              <div style={{ fontSize: 11, color: 'var(--text2)', marginTop: 4 }}>👨‍🏫 {s.staffName}</div>
+                              <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                                <span><Building2 size={12} /></span>
+                                <strong>{s.labName?.split(' —')[0]}</strong>
+                              </div>
                             </div>
                           );
                         })}

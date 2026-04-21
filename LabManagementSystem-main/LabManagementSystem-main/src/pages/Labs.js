@@ -165,7 +165,7 @@ export default function Labs() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
                     <div>
                       <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text)', marginBottom: 3 }}>{name}</div>
-                      <div style={{ fontSize: 12, color: 'var(--text3)', fontFamily: 'var(--mono)' }}>ID: {id} · {location}</div>
+                      <div style={{ fontSize: 12, color: 'var(--text3)', fontFamily: 'var(--mono)' }}>ID: {id} · {location} · OS: {lab.osType || 'Any'}</div>
                     </div>
                     <button className="btn btn-secondary btn-sm" onClick={() => startEdit(lab)}>Edit</button>
                   </div>
@@ -207,12 +207,13 @@ export default function Labs() {
       <div className="card">
         <div className="section-title">Summary Table</div>
         <table>
-          <thead><tr><th>Lab ID</th><th>Name</th><th>Location</th><th>Total PCs</th><th>Functional</th><th>Faulty</th><th>Status</th></tr></thead>
+          <thead><tr><th>Lab ID</th><th>Name</th><th>Location</th><th>OS</th><th>Total PCs</th><th>Functional</th><th>Faulty</th><th>Status</th></tr></thead>
           <tbody>
             {labs.map(lab => {
               const id = lab.id;
               const name = lab.labName || lab.name;
               const location = lab.location || 'Unknown';
+              const os = lab.osType || 'N/A';
               const totalPCs = lab.totalComputers || lab.totalPCs || 0;
               const functionalPCs = lab.workingComputers || lab.functionalPCs || 0;
               const faulty = Math.max(0, totalPCs - functionalPCs);
@@ -222,6 +223,7 @@ export default function Labs() {
                   <td style={{ fontFamily: 'var(--mono)', color: 'var(--accent)' }}>{id}</td>
                   <td style={{ color: 'var(--text)' }}>{name}</td>
                   <td>{location}</td>
+                  <td><span className="badge badge-info">{os}</span></td>
                   <td style={{ fontFamily: 'var(--mono)' }}>{totalPCs}</td>
                   <td style={{ color: 'var(--success)', fontFamily: 'var(--mono)' }}>{functionalPCs}</td>
                   <td style={{ color: faulty > 0 ? 'var(--warning)' : 'var(--text3)', fontFamily: 'var(--mono)' }}>{faulty}</td>

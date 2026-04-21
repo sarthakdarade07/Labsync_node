@@ -18,10 +18,27 @@ export default function Batches() {
 
   const uniqueOs = Array.from(new Set(labs.map(l => l.osType).filter(Boolean)));
 
+  const calculateEndTime = (startTime, totalHours) => {
+    if (!startTime || !totalHours) return '';
+    const [hours, minutes] = startTime.split(':').map(Number);
+    if (isNaN(hours) || isNaN(minutes)) return '';
+    const totalMins = hours * 60 + minutes + Number(totalHours) * 60;
+    const endHours = Math.floor(totalMins / 60) % 24;
+    const endMins = totalMins % 60;
+    return `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
+  };
+
   const addBatch = async () => {
     if (!form.batchName) return;
     try {
-      const payload = { ...form, programId: 1, academicYearId: 1 };
+      const payload = { 
+        ...form, 
+        program: 1, 
+        academicYear: 1,
+        subjects: form.subjectIds,
+        requiredHours: form.totalHours ? parseInt(form.totalHours) : 2
+      };
+      delete payload.subjectIds;
       if (!payload.startTime) payload.startTime = null;
       if (!payload.endTime) payload.endTime = null;
       if (!payload.studentCount) payload.studentCount = 30; // fallback default
@@ -77,21 +94,29 @@ export default function Batches() {
               </select>
             </div>
             <div><label style={styles.label}>Labs/Wk</label><input type="number" placeholder="e.g. 1" min="1" value={form.labsPerWeek} onChange={e => setForm(p => ({ ...p, labsPerWeek: parseInt(e.target.value)||1 }))} /></div>
-            <div><label style={styles.label}>Total Hrs</label><input type="number" placeholder="e.g. 50" value={form.totalHours} onChange={e => setForm(p => ({ ...p, totalHours: parseInt(e.target.value) || '' }))} /></div>
-            <div><label style={styles.label}>Start Time</label><input type="time" value={form.startTime} onChange={e => setForm(p => ({ ...p, startTime: e.target.value }))} /></div>
+            <div><label style={styles.label}>Total Hrs</label><input type="number" placeholder="e.g. 50" value={form.totalHours} onChange={e => {
+              const totalHours = parseInt(e.target.value) || '';
+              setForm(p => ({ ...p, totalHours, endTime: calculateEndTime(p.startTime, totalHours) || p.endTime }));
+            }} /></div>
+            <div><label style={styles.label}>Start Time</label><input type="time" value={form.startTime} onChange={e => {
+              const startTime = e.target.value;
+              setForm(p => ({ ...p, startTime, endTime: calculateEndTime(startTime, p.totalHours) || p.endTime }));
+            }} /></div>
             <div><label style={styles.label}>End Time</label><input type="time" value={form.endTime} onChange={e => setForm(p => ({ ...p, endTime: e.target.value }))} /></div>
             
             <div style={{ gridColumn: '1 / -1' }}><label style={styles.label}>Mapped Subjects (Select multiple)</label>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', border: '1px solid var(--border)', padding: 12, borderRadius: 8, maxHeight: 150, overflowY: 'auto' }}>
-                {subjects.map(s => (
-                  <label key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, background: 'var(--bg2)', padding: '4px 8px', borderRadius: 4, cursor: 'pointer' }}>
-                    <input type="checkbox" checked={form.subjectIds.includes(s.id)} onChange={e => {
+                {subjects.map(s => {
+                  const sId = s._id || s.id;
+                  return (
+                  <label key={sId} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, background: 'var(--bg2)', padding: '4px 8px', borderRadius: 4, cursor: 'pointer' }}>
+                    <input type="checkbox" checked={form.subjectIds.includes(sId)} onChange={e => {
                       const checked = e.target.checked;
-                      setForm(p => ({ ...p, subjectIds: checked ? [...p.subjectIds, s.id] : p.subjectIds.filter(id => id !== s.id) }));
+                      setForm(p => ({ ...p, subjectIds: checked ? [...p.subjectIds, sId] : p.subjectIds.filter(id => id !== sId) }));
                     }} />
-                    {s.subjectCode}
+                    {s.name}
                   </label>
-                ))}
+                )})}
                 {subjects.length === 0 && <div style={{ fontSize: 13, color: 'var(--text3)' }}>No subjects available.</div>}
               </div>
             </div>
@@ -106,15 +131,17 @@ export default function Batches() {
         <table>
           <thead><tr><th>Batch ID</th><th>Name</th><th>Division</th><th>Year</th><th>Strength</th><th>OS</th><th>Subjects</th><th>Labs/Wk</th><th>Time (Start-End) / Hrs</th><th>Actions</th></tr></thead>
           <tbody>
-            {batches.map(b => (
-              <tr key={b.id}>
-                <td style={{ fontFamily: 'var(--mono)', color: 'var(--accent)' }}>{b.id}</td>
+            {batches.map(b => {
+              const bId = b._id || b.id;
+              return (
+              <tr key={bId}>
+                <td style={{ fontFamily: 'var(--mono)', color: 'var(--accent)' }}>{bId}</td>
                 <td style={{ color: 'var(--text)', fontWeight: 600 }}>{b.batchName}</td>
                 <td>{b.division}</td>
                 <td><span className="badge badge-info">{b.semester}</span></td>
                 <td style={{ fontFamily: 'var(--mono)' }}>{b.studentCount}</td>
                 <td><span className="badge">{b.osRequirement || 'Any'}</span></td>
-                <td style={{ fontSize: 12, color: 'var(--text2)', maxWidth: 150 }}>{b.subjects && b.subjects.length > 0 ? b.subjects.map(s => s.subjectCode).join(', ') : 'None'}</td>
+                <td style={{ fontSize: 12, color: 'var(--text2)', maxWidth: 150 }}>{b.subjects && b.subjects.length > 0 ? b.subjects.map(s => s.name).join(', ') : 'None'}</td>
                 <td style={{ textAlign: 'center' }}>{b.labsPerWeek || 1}</td>
                 <td style={{ fontSize: 13 }}>
                   {(!b.startTime || b.startTime === '00:00:00' || b.startTime === '00:00') ? 'Any' : b.startTime.substring(0,5)} - 
@@ -123,10 +150,10 @@ export default function Batches() {
                 </td>
     
                 <td>
-                  <button className="btn btn-danger btn-sm" onClick={() => remove(b.id)}>Remove</button>
+                  <button className="btn btn-danger btn-sm" onClick={() => remove(bId)}>Remove</button>
                 </td>
               </tr>
-            ))}
+            )})}
           </tbody>
         </table>
       </div>
