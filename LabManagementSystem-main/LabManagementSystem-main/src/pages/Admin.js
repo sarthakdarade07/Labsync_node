@@ -647,11 +647,15 @@ function UsersTab() {
               <td>{u.fullName}</td>
               <td style={{ fontFamily: 'var(--mono)', fontSize: 13 }}>{u.email}</td>
               <td>
-                {u.roles?.map(r => (
-                  <span key={r} className={`badge ${r === 'ROLE_ADMIN' ? 'badge-info' : 'badge-warning'}`} style={{ marginRight: 4 }}>
-                    {r.replace('ROLE_', '')}
-                  </span>
-                ))}
+                {u.roles?.map((r, idx) => {
+                  if (!r) return null;
+                  const roleStr = typeof r === 'string' ? r : String(r);
+                  return (
+                    <span key={idx} className={`badge ${roleStr === 'ROLE_ADMIN' ? 'badge-info' : 'badge-warning'}`} style={{ marginRight: 4 }}>
+                      {roleStr.replace('ROLE_', '')}
+                    </span>
+                  );
+                })}
               </td>
               <td>
                 <button className="btn btn-secondary btn-sm" onClick={() => { setPasswordChangeData({ id: u.id, password: '' }); setShowPasswordModal(true); }} style={{ marginRight: 8 }}>Change Password</button>

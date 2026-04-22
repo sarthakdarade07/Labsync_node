@@ -42,7 +42,12 @@ export default function Schedule() {
       
       if (!overlaps) return false;
       if (s.labId && f.labId && s.labId.toString() === f.labId.toString()) return true;
-      if (f.staffId && s.staffId && s.staffId.toString() === f.staffId.toString()) return true;
+      
+      const isSplitSession = s.batchId && f.batchId && s.batchId.toString() === f.batchId.toString() &&
+                             s.subjectId && f.subjectId && s.subjectId.toString() === f.subjectId.toString();
+
+      if (f.staffId && s.staffId && s.staffId.toString() === f.staffId.toString() && !isSplitSession) return true;
+      
       if (s.batchId && f.batchId && s.batchId.toString() === f.batchId.toString() && 
           s.subjectId && f.subjectId && s.subjectId.toString() !== f.subjectId.toString()) return true;
       
@@ -84,7 +89,7 @@ export default function Schedule() {
     if (!form.dayId) missing.push('Day');
     if (!form.startTime) missing.push('Start Time');
     if (!form.endTime) missing.push('End Time');
-    if (!form.labId) missing.push('Lab (from Find Available Labs)');
+    // Lab is optional now
     
     if (missing.length > 0) return alert(`Fill all fields. Missing: ${missing.join(', ')}`);
     const clashes = detectClash(form);
@@ -237,7 +242,7 @@ export default function Schedule() {
                   <td>{s.staffName}</td>
                   <td>{s.dayName}</td>
                   <td style={{ fontFamily: 'var(--mono)', fontSize: 13 }}>{s.startTime?.substring(0,5)} - {s.endTime?.substring(0,5)}</td>
-                  <td>{s.labName?.split(' —')[0]}</td>
+                  <td>{s.labName ? s.labName.split(' —')[0] : <span style={{color: 'var(--danger)', fontSize: 12, fontWeight: 600}}>No lab available</span>}</td>
                   <td>
                     {hasClash
                       ? <span className="badge badge-danger">CLASH</span>

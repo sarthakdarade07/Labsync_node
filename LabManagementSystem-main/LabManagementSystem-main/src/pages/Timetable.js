@@ -108,7 +108,7 @@ export default function Timetable() {
                               <div style={{ fontSize: 11, color: 'var(--text2)', marginTop: 4 }}>👨‍🏫 {s.staffName}</div>
                               <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
                                 <span><Building2 size={12} /></span>
-                                <strong>{s.labName?.split(' —')[0]}</strong>
+                                <strong>{s.labName ? s.labName.split(' —')[0] : <span style={{color: 'var(--danger)'}}>No lab available</span>}</strong>
                               </div>
                             </div>
                           );

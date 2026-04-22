@@ -52,17 +52,30 @@ exports.regenerateTimetable = async (req, res) => {
 
         const newSchedules = [];
         for (const gene of bestSchedule.genes) {
-            for (const labId of gene.labIds) {
+            if (!gene.labIds || gene.labIds.length === 0) {
                 newSchedules.push({
                     batch: gene.batchId,
                     subject: gene.subjectId,
                     staff: gene.staffId,
-                    lab: labId,
+                    lab: null, // No lab available
                     day: gene.dayId,
                     startTime: gene.startTime,
                     endTime: gene.endTime,
                     generatedByGA: true
                 });
+            } else {
+                for (const labId of gene.labIds) {
+                    newSchedules.push({
+                        batch: gene.batchId,
+                        subject: gene.subjectId,
+                        staff: gene.staffId,
+                        lab: labId,
+                        day: gene.dayId,
+                        startTime: gene.startTime,
+                        endTime: gene.endTime,
+                        generatedByGA: true
+                    });
+                }
             }
         }
 

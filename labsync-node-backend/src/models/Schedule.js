@@ -6,7 +6,7 @@ const scheduleSchema = new mongoose.Schema({
     batch: { type: Number, ref: 'Batch', required: true },
     subject: { type: Number, ref: 'Subject', required: true },
     staff: { type: Number, ref: 'Staff' },
-    lab: { type: Number, ref: 'Lab', required: true },
+    lab: { type: Number, ref: 'Lab' },
     day: { type: Number, ref: 'Day', required: true },
     startTime: { type: String, required: true },
     endTime: { type: String, required: true },

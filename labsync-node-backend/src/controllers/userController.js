@@ -2,8 +2,18 @@ const User = require('../models/User');
 
 exports.getAll = async (req, res) => {
     try {
-        const data = await User.find();
-        res.status(200).json({ success: true, message: 'Fetched successfully', data });
+        const data = await User.find().populate('roles');
+        
+        // Map the data to return role names if populated
+        const mappedData = data.map(user => {
+            const userObj = user.toObject();
+            if (userObj.roles) {
+                userObj.roles = userObj.roles.map(r => r ? (r.name || r.roleName || r) : null).filter(Boolean);
+            }
+            return userObj;
+        });
+        
+        res.status(200).json({ success: true, message: 'Fetched successfully', data: mappedData });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
