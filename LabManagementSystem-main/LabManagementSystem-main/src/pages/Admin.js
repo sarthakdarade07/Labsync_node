@@ -458,7 +458,10 @@ function BatchesTab() {
               <input placeholder="Division (e.g. CSE-A)" value={newBatch.division} onChange={e => setNewBatch(p => ({ ...p, division: e.target.value }))} />
             </div>
             <div className="grid-2">
-              <input placeholder="Semester (e.g. SEM-5)" value={newBatch.semester} onChange={e => setNewBatch(p => ({ ...p, semester: e.target.value }))} />
+              <select value={newBatch.semester} onChange={e => setNewBatch(p => ({ ...p, semester: e.target.value }))}>
+                <option value="">Select Semester</option>
+                {[1, 2, 3, 4, 5, 6, 7, 8].map(s => <option key={s} value={`SEM-${s}`}>SEM-{s}</option>)}
+              </select>
               <input type="number" placeholder="Student Strength" value={newBatch.studentCount} onChange={e => setNewBatch(p => ({ ...p, studentCount: parseInt(e.target.value) || 30 }))} />
             </div>
                         <div className="grid-2">
@@ -488,7 +491,10 @@ function BatchesTab() {
               <input placeholder="Division (e.g. CSE-A)" value={editingBatch.division || ''} onChange={e => setEditingBatch(p => ({ ...p, division: e.target.value }))} />
             </div>
             <div className="grid-2">
-              <input placeholder="Semester (e.g. SEM-5)" value={editingBatch.semester || ''} onChange={e => setEditingBatch(p => ({ ...p, semester: e.target.value }))} />
+              <select value={editingBatch.semester || ''} onChange={e => setEditingBatch(p => ({ ...p, semester: e.target.value }))}>
+                <option value="">Select Semester</option>
+                {[1, 2, 3, 4, 5, 6, 7, 8].map(s => <option key={s} value={`SEM-${s}`}>SEM-{s}</option>)}
+              </select>
               <input type="number" placeholder="Student Strength" value={editingBatch.studentCount || ''} onChange={e => setEditingBatch(p => ({ ...p, studentCount: parseInt(e.target.value) || 30 }))} />
             </div>
             <div className="grid-2">

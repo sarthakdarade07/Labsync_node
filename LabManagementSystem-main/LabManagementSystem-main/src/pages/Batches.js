@@ -83,7 +83,8 @@ export default function Batches() {
             <div><label style={styles.label}>Division</label><input placeholder="e.g. CSE-A" value={form.division} onChange={e => setForm(p => ({ ...p, division: e.target.value }))} /></div>
             <div><label style={styles.label}>Semester</label>
               <select value={form.semester} onChange={e => setForm(p => ({ ...p, semester: e.target.value }))}>
-                <option value="SEM-1">SEM-1</option><option value="SEM-3">SEM-3</option><option value="SEM-5">SEM-5</option><option value="SEM-7">SEM-7</option>
+                <option value="">Select Semester</option>
+                {[1, 2, 3, 4, 5, 6, 7, 8].map(s => <option key={s} value={`SEM-${s}`}>SEM-{s}</option>)}
               </select>
             </div>
             <div><label style={styles.label}>Strength</label><input type="number" placeholder="e.g. 30" value={form.studentCount} onChange={e => setForm(p => ({ ...p, studentCount: parseInt(e.target.value)||30 }))} /></div>
