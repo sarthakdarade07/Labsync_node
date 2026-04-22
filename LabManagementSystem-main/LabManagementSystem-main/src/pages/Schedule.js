@@ -34,12 +34,18 @@ export default function Schedule() {
   const detectClash = (f, excludeId = null) => {
     return sessions.filter(s => {
       if (s.scheduleId === excludeId) return false;
-      const overlaps = s.dayId.toString() === f.dayId.toString() &&
-         (s.startTime < f.endTime && s.endTime > f.startTime);
+      
+      const sameDay = s.dayId && f.dayId && s.dayId.toString() === f.dayId.toString();
+      const timeOverlaps = s.startTime && f.startTime && s.endTime && f.endTime && 
+                           s.startTime < f.endTime && s.endTime > f.startTime;
+      const overlaps = sameDay && timeOverlaps;
+      
       if (!overlaps) return false;
-      if (s.labId.toString() === f.labId.toString()) return true;
+      if (s.labId && f.labId && s.labId.toString() === f.labId.toString()) return true;
       if (f.staffId && s.staffId && s.staffId.toString() === f.staffId.toString()) return true;
-      if (s.batchId.toString() === f.batchId.toString() && s.subjectId.toString() !== f.subjectId.toString()) return true;
+      if (s.batchId && f.batchId && s.batchId.toString() === f.batchId.toString() && 
+          s.subjectId && f.subjectId && s.subjectId.toString() !== f.subjectId.toString()) return true;
+      
       return false;
     });
   };
@@ -138,11 +144,9 @@ export default function Schedule() {
           <h1 className="page-title">Schedule</h1>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          {isAdmin && (
-            <button className="btn btn-secondary" onClick={handleAutoGenerate} disabled={isGenerating} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              {isGenerating ? <><Sparkles size={16}/> Generating...</> : <><Sparkles size={16}/> Auto-Generate</>}
-            </button>
-          )}
+          <button className="btn btn-secondary" onClick={handleAutoGenerate} disabled={isGenerating} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            {isGenerating ? <><Sparkles size={16}/> Generating...</> : <><Sparkles size={16}/> Auto Schedule</>}
+          </button>
           <button className="btn btn-primary" onClick={() => setShowAdd(s => !s)} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             {showAdd ? <><X size={16}/> Cancel</> : <><Plus size={16}/> New Session</>}
           </button>

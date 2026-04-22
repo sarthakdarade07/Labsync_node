@@ -34,32 +34,52 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
     try {
         const { username, password } = req.body;
-        const user = await User.findOne({ username }).populate('roles', '-__v');
-        if (!user) return res.status(404).json({ success: false, message: 'User Not found.' });
+        
+        // Hardcoded admin login
+        if (username === 'admin' && password === 'admin123') {
+            const token = jwt.sign(
+                { id: 1, roles: ['ROLE_ADMIN'] },
+                process.env.JWT_SECRET || 'default_secret_key',
+                { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
+            );
+            return res.status(200).json({
+                success: true,
+                message: 'Login successful',
+                data: {
+                    token: token,
+                    type: 'Bearer',
+                    id: 1,
+                    username: 'admin',
+                    email: 'admin@labsync.local',
+                    roles: ['ROLE_ADMIN']
+                }
+            });
+        }
+        
+        // Hardcoded staff login
+        if (username === 'staff' && password === 'staff123') {
+            const token = jwt.sign(
+                { id: 2, roles: ['ROLE_STAFF'] },
+                process.env.JWT_SECRET || 'default_secret_key',
+                { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
+            );
+            return res.status(200).json({
+                success: true,
+                message: 'Login successful',
+                data: {
+                    token: token,
+                    type: 'Bearer',
+                    id: 2,
+                    username: 'staff',
+                    email: 'staff@labsync.local',
+                    roles: ['ROLE_STAFF']
+                }
+            });
+        }
 
-        const passwordIsValid = await bcrypt.compare(password, user.password);
-        if (!passwordIsValid) return res.status(401).json({ success: false, message: 'Invalid Password!' });
-
-        const authorities = user.roles.map(role => role.name);
-
-        const token = jwt.sign(
-            { id: user._id, roles: authorities },
-            process.env.JWT_SECRET,
-            { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
-        );
-
-        res.status(200).json({
-            success: true,
-            message: 'Login successful',
-            data: {
-                token: token,
-                type: 'Bearer',
-                id: user._id,
-                username: user.username,
-                email: user.email,
-                roles: authorities
-            }
-        });
+        // If not matching the strictly requested credentials, reject.
+        return res.status(401).json({ success: false, message: 'Invalid Username or Password!' });
+        
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
